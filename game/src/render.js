@@ -193,9 +193,17 @@ function drawButton(ctx, b, active, disabled) {
 }
 
 // --- play screen ---------------------------------------------------------
+// picked can carry two click zones for one difference (the moved cat gets
+// a second zone at its new spot), so the total is the number of unique
+// diff ids — not picked.length, which counts zones.
+function diffTotal(picked) {
+  return new Set(picked.map((d) => d.id)).size;
+}
+
 export function drawPlayScreen(ctx, game, now, panels) {
   const { scene, found, picked, score, combo, streak } = game;
-  const remaining = picked.length - found.size;
+  const total = diffTotal(picked);
+  const remaining = total - found.size;
   // background
   ctx.fillStyle = PALETTE.cream;
   ctx.fillRect(0, 0, VIEW_W, VIEW_H);
@@ -218,7 +226,7 @@ export function drawPlayScreen(ctx, game, now, panels) {
   text(ctx, `Skor ${score.toLocaleString("id-ID")}`, 24, 78, 15, PALETTE.tealDark, "left", 800);
 
   // the big remaining counter — the judge's first criterion lives here
-  text(ctx, `Tersisa ${remaining} dari ${picked.length}`, VIEW_W / 2, 34, 34, PALETTE.terraDark, "center", 800);
+  text(ctx, `Tersisa ${remaining} dari ${total}`, VIEW_W / 2, 34, 34, PALETTE.terraDark, "center", 800);
   if (game.mode === "waktu") {
     const frac = Math.max(0, game.timeLeft / game.timeLimit);
     const barW = 420;
@@ -521,7 +529,7 @@ export function drawPauseOverlay(ctx, game) {
   dim(ctx);
   panel(ctx, 340, 150, 600, 470);
   text(ctx, "JEDA", VIEW_W / 2, 220, 48, PALETTE.terraDark, "center", 800);
-  text(ctx, `${game.scene.name} — ${game.picked.length - game.found.size} perbedaan tersisa`, VIEW_W / 2, 272, 18, PALETTE.brown, "center", 700);
+  text(ctx, `${game.scene.name} — ${diffTotal(game.picked) - game.found.size} perbedaan tersisa`, VIEW_W / 2, 272, 18, PALETTE.brown, "center", 700);
   text(ctx, `Skor ${game.score.toLocaleString("id-ID")}  •  Kombo x${game.combo}`, VIEW_W / 2, 306, 18, PALETTE.tealDark, "center", 700);
   text(ctx, "Timer berhenti selama jeda.", VIEW_W / 2, 344, 15, PALETTE.brown, "center", 700);
   for (const b of pauseButtons()) drawButton(ctx, b, false, false);
@@ -555,7 +563,7 @@ export function drawCelebrateOverlay(ctx, game, now) {
   }
   const acc = game.sceneClicks > 0 ? game.sceneFound / game.sceneClicks : 1;
   if (game.failed) {
-    text(ctx, `Baru ${game.sceneFound} dari ${game.picked.length} perbedaan ketemu.`, VIEW_W / 2, 356, 20, PALETTE.ink, "center", 800);
+    text(ctx, `Baru ${game.sceneFound} dari ${diffTotal(game.picked)} perbedaan ketemu.`, VIEW_W / 2, 356, 20, PALETTE.ink, "center", 800);
     text(ctx, "Coba lagi — perbedaan yang dicari diacak setiap main.", VIEW_W / 2, 390, 16, PALETTE.brown, "center", 700);
   } else {
     text(ctx, `Skor scene: ${game.sceneScore.toLocaleString("id-ID")}`, VIEW_W / 2, 356, 22, PALETTE.ink, "center", 800);
