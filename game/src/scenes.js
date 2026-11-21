@@ -422,7 +422,10 @@ const BECAK_DIFFS = [
   { id: "ekor-kucing", x: 258, y: 250, r: 22, label: "Ekor kucing berubah arah" },
   { id: "keranjang-hilang", x: 157, y: 338, r: 26, label: "Keranjang di becak hilang" },
   { id: "bel-hilang", x: 432, y: 244, r: 16, label: "Bel setang hilang" },
-  { id: "bayangan", x: 330, y: 462, r: 30, label: "Bayangan becak bergeser" },
+  // The shadow shifts right 40 px, so the visible change is the crescent of
+  // new shadow at the right edge (x 480-520), not the middle — the zone
+  // sits on the crescent's centre.
+  { id: "bayangan", x: 500, y: 462, r: 30, label: "Bayangan becak bergeser" },
   { id: "pot-bunga", x: 568, y: 428, r: 20, label: "Satu bunga di pot hilang" },
 ];
 
@@ -752,7 +755,12 @@ const JAMU_DIFFS = [
   { id: "koin-hilang", x: 350, y: 360, r: 14, label: "Koin di meja hilang" },
   { id: "bangku-hilang", x: 520, y: 472, r: 26, label: "Bangku hilang" },
   { id: "tutup-botol", x: 217, y: 154, r: 14, label: "Tutup botol berubah warna" },
-  { id: "bayangan-payung", x: 340, y: 480, r: 30, label: "Bayangan payung bergeser" },
+  // The shadow shifts right 40 px, so the visible change is the crescent of
+  // new shadow at the right edge (x 450-490), not the middle — the zone
+  // sits on the crescent's centre. The bangku-hilang zone at (520,472) is
+  // 50.6 away, so both centres stay unambiguous (a click between them
+  // still finds a difference either way).
+  { id: "bayangan-payung", x: 470, y: 480, r: 26, label: "Bayangan payung bergeser" },
 ];
 
 // --- Scene 7: Tukang Sayur Keliling (mobile veggie cart) -----------------
@@ -900,7 +908,29 @@ export function pickRandomDifferences(scene, rng) {
     const j = Math.floor(rng() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  return pool.slice(0, 7);
+  const picked = pool.slice(0, 7);
+  // The becak cat moves with its tail, so two zones follow it when
+  // kucing-pindah is picked. The cat is drawn on the floor at (470,428)
+  // in the changed panel, so that spot needs its own zone — the seat zone
+  // alone would leave every click on the visible cat a miss. The clone
+  // rides along as a second zone for the same id (the scene still has 7
+  // differences; found is keyed by id). Radius 26 keeps the tail tip
+  // (447,397), 38.6 away, outside this zone's hit circle, so a click on
+  // the tail finds ekor-kucing, never this one. And when both diffs are
+  // picked, the ekor-kucing zone follows the cat to the floor tail tip
+  // (447,397): the tail-up curve runs from (452,426) to (446.6,397.4),
+  // all inside the zone's hit circle. Entries are cloned, never mutated:
+  // the pool holds references to the scene's shared zone table.
+  const ids = new Set(picked.map((d) => d.id));
+  if (ids.has("kucing-pindah")) {
+    const cat = picked.find((d) => d.id === "kucing-pindah");
+    picked.push({ ...cat, x: 470, y: 428, r: 26 });
+  }
+  if (ids.has("kucing-pindah") && ids.has("ekor-kucing")) {
+    const i = picked.findIndex((d) => d.id === "ekor-kucing");
+    picked[i] = { ...picked[i], x: 447, y: 397 };
+  }
+  return picked;
 }
 
 export { PALETTE };
