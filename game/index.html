@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PASAR PAGI — Cari Bedanya</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: #2b1a10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Trebuchet MS', Verdana, sans-serif;
+    overflow: hidden;
+  }
+  #game {
+    display: block;
+    width: min(100vw, calc(100vh * 1280 / 720));
+    height: min(100vh, calc(100vw * 720 / 1280));
+    image-rendering: auto;
+    cursor: pointer;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+  }
+</style>
+</head>
+<body>
+<canvas id="game" width="1280" height="720"></canvas>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
